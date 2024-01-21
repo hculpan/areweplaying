@@ -14,6 +14,7 @@ awp-cli
 awp-cli.*
 players.json
 .DS_Store
+.vscode
 
 # air-related stuff
 tmp

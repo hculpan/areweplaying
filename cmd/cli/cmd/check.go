@@ -15,13 +15,17 @@ import (
 func isAttending(body string) string {
 	body = strings.ToLower(body)
 	lines := strings.Fields(body)
-	if strings.Contains(lines[0], "yes") {
-		return "yes"
-	} else if strings.Contains(lines[0], "no") {
-		return "no"
-	} else {
-		return "unknown"
+
+	for _, l := range lines {
+		line := strings.Trim(l, " \t\r\n")
+		if strings.HasPrefix(line, "yes") {
+			return "yes"
+		} else if strings.HasPrefix(line, "no") {
+			return "no"
+		}
 	}
+
+	return "unknown"
 }
 
 // checkCmd represents the check command
@@ -41,6 +45,7 @@ will attend the next session.`,
 		if len(emails) == 0 {
 			log.Default().Println("No new emails")
 		} else {
+			log.Default().Println("Reading new emails")
 			session, err := data.ReadSessionData()
 			if err != nil {
 				log.Default().Println(err)
