@@ -3,11 +3,15 @@
   "players": [
     {
       "name": "Player1",
-      "attending": "unknown"
+      "attending": "unknown",
+      "email": "somebody@somehost.com",
+      "gm": true
     },
     {
       "name": "Player2",
-      "attending": "yes"
+      "attending": "yes",
+      "email": "somebodyelse@somehost.com",
+      "gm": false
     }
   ],
   "inc_days": 7,
