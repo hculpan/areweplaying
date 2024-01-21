@@ -1,0 +1,50 @@
+package templates
+
+import (
+"github.com/hculpan/areweplaying/pkg/data"
+)
+
+templ PageBody(session data.Session) {
+<div class="row">
+    <div class="col h1 text-center">Next Session: { session.Date }</div>
+</div>
+<div class="row justify-content-center mt-4">
+    <div class="col col-lg-3">
+        <table class="table table-dark table-striped border border-secondary">
+            <thead>
+                <tr>
+                    <th scope="col" class="col-1 text-center">Attending</th>
+                    <th scope="col" class="col-2 text-center">Player</th>
+                </tr>
+            </thead>
+            <tbody>
+                for _, player := range session.Players {
+                <tr>
+                    <td class="col col-lg-1 align-middle text-center" hx-get={ player.ToggleUrl } hx-swap="innerHTML"
+                        hx-target="#session-info" hx-trigger="click">
+                        if player.Attending == "yes" {
+                        <img src="/static/check_green.png" width="30" height="30" />
+                        } else if player.Attending == "no"{
+                        <img src="/static/check_red.png" width="30" height="30" />
+                        } else {
+                        <img src="/static/check_grey.png" width="30" height="30" />
+                        }
+                    </td>
+                    <td class="col col-lg-2 align-middle text-center" style="height: 50px;">{ player.Name }</td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="row">
+    if session.Status == "planned" {
+    <div class="col h1 text-center text-success">Status: { session.Status }</div>
+    } else if session.Status == "canceled" {
+    <div class="col h1 text-center text-danger">Status: { session.Status }</div>
+    } else {
+    <div class="col h1 text-center">Status: { session.Status }</div>
+    }
+</div>
+
+}

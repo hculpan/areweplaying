@@ -7,6 +7,16 @@
 *.dll
 *.so
 *.dylib
+.env
+areweplaying
+areweplaying.*
+awp-cli
+awp-cli.*
+players.json
+.DS_Store
+
+# air-related stuff
+tmp
 
 # Test binary, built with `go test -c`
 *.test

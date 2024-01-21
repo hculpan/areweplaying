@@ -1,0 +1,123 @@
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/smtp"
+	"os"
+	"strconv"
+
+	"github.com/emersion/go-imap"
+	"github.com/emersion/go-imap/client"
+	"github.com/joho/godotenv"
+)
+
+func main() {
+	var username string
+	var password string
+	var fetchServer string
+	var sendServer string
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("unable to load env: %s", err)
+	}
+
+	username = os.Getenv("USERNAME")
+	password = os.Getenv("PASSWORD")
+	fetchServer = os.Getenv("IMAP_SERVER")
+	sendServer = os.Getenv("SMTP_SERVER")
+	port := 993
+
+	if len(username) == 0 || len(password) == 0 || len(fetchServer) == 0 || len(sendServer) == 0 {
+		log.Fatal("missing configuration variables")
+	}
+
+	imapClient, err := connectToServer(username, password, fetchServer, port)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer imapClient.Logout()
+
+	if err := fetchEmails(imapClient); err != nil {
+		log.Fatal(err)
+	}
+
+	/*
+	   to := "harry@culpan.org"
+	   subject := "Test Email"
+	   body := "This is a test email sent from a Go-based email client."
+
+	   	if err := sendEmail(username, password, sendServer, 587, to, subject, body); err != nil {
+	   		log.Fatal(err)
+	   	}
+	*/
+}
+
+func fetchEmails(imapClient *client.Client) error {
+	// Select the mailbox you want to read
+	_, err := imapClient.Select("INBOX", false)
+	if err != nil {
+		return err
+	}
+
+	criteria := imap.NewSearchCriteria()
+	criteria.WithoutFlags = []string{"\\Seen"}
+	uids, err := imapClient.Search(criteria)
+	if err != nil {
+		log.Printf("Search error: %s\n", err)
+	}
+
+	if len(uids) > 0 {
+		// Define the range of emails to fetch
+		seqSet := new(imap.SeqSet)
+		seqSet.AddNum(uids...)
+
+		// Fetch the required message attributes
+		messages := make(chan *imap.Message, 10)
+		section := &imap.BodySectionName{}
+		items := []imap.FetchItem{section.FetchItem(), imap.FetchEnvelope}
+
+		go func() {
+			if err := imapClient.Fetch(seqSet, items, messages); err != nil {
+				log.Fatal("Fetch error: " + err.Error())
+			}
+		}()
+
+		for msg := range messages {
+			fmt.Println("Subject:", msg.Envelope.Subject)
+		}
+	}
+
+	return nil
+}
+
+func sendEmail(username, password, server string, port int, to, subject, body string) error {
+	auth := smtp.PlainAuth("", username, password, server)
+
+	msg := "From: " + username + "\r\n" +
+		"To: " + to + "\r\n" +
+		"Subject: " + subject + "\r\n" +
+		"\r\n" +
+		body
+
+	err := smtp.SendMail(server+":"+strconv.Itoa(port), auth, username, []string{to}, []byte(msg))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func connectToServer(username, password, server string, port int) (*client.Client, error) {
+	c, err := client.DialTLS(fmt.Sprintf("%s:%d", server, port), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := c.Login(username, password); err != nil {
+		return nil, err
+	}
+
+	return c, nil
+}

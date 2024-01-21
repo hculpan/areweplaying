@@ -1,0 +1,16 @@
+{
+  "date": "Tuesday Jan 23, 2024 6:30pm",
+  "players": [
+    {
+      "name": "Player1",
+      "attending": "unknown"
+    },
+    {
+      "name": "Player2",
+      "attending": "yes"
+    }
+  ],
+  "inc_days": 7,
+  "status": "planned",
+  "password": "ABC123"
+}
