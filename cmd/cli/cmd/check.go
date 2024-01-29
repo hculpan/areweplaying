@@ -4,6 +4,7 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"fmt"
 	"log"
 	"strings"
 
@@ -26,6 +27,30 @@ func isAttending(body string) string {
 	}
 
 	return "unknown"
+}
+
+func getGmEmail(session data.Session) *data.Player {
+	for i, p := range session.Players {
+		if p.Gm {
+			return &session.Players[i]
+		}
+	}
+
+	return nil
+}
+
+func sendEventNotice(session data.Session, subject string, body string) error {
+	gm := getGmEmail(session)
+	if gm == nil {
+		return fmt.Errorf("unable to find GM address")
+	}
+
+	e := email.NewEmail([]string{gm.Email}, "culpanvtt@gmail.com", subject, body)
+	if e == nil {
+		return fmt.Errorf("unable to construct Email object")
+	}
+
+	return email.SendEmail(e)
 }
 
 // checkCmd represents the check command
@@ -60,6 +85,27 @@ will attend the next session.`,
 						if attending == "yes" || attending == "no" {
 							player.Attending = attending
 							log.Default().Printf("Received player response for %s: %s", player.Name, player.Attending)
+							if !player.Gm {
+								if err := sendEventNotice(
+									session,
+									"Received player response",
+									fmt.Sprintf(`Player %s has responded with %q`, player.Name, player.Attending),
+								); err != nil {
+									log.Default().Printf("ERROR: %s", err)
+								}
+							}
+						} else {
+							if !player.Gm {
+								if err := sendEventNotice(
+									session,
+									"Received invalid player response",
+									fmt.Sprintf(`Player %s has responded with an invalid response:
+
+%s`, player.Name, email.Body),
+								); err != nil {
+									log.Default().Printf("ERROR: %s", err)
+								}
+							}
 						}
 					}
 				}
