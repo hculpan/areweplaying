@@ -45,7 +45,11 @@ func sendEventNotice(session data.Session, subject string, body string) error {
 		return fmt.Errorf("unable to find GM address")
 	}
 
-	e := email.NewEmail([]string{gm.Email}, "culpanvtt@gmail.com", subject, body)
+	return sendNotice(gm.Email, subject, body)
+}
+
+func sendNotice(toEmail string, subject string, body string) error {
+	e := email.NewEmail([]string{toEmail}, "culpanvtt@gmail.com", subject, body)
 	if e == nil {
 		return fmt.Errorf("unable to construct Email object")
 	}
@@ -105,6 +109,15 @@ will attend the next session.`,
 								); err != nil {
 									log.Default().Printf("ERROR: %s", err)
 								}
+							}
+							if err := sendNotice(
+								player.Email,
+								"Unable to process response",
+								fmt.Sprintf(`You have sent a response that I am unable to process. Please respond with a "yes" or "no".
+
+%s`, email.Body),
+							); err != nil {
+								log.Default().Printf("ERROR: %s", err)
 							}
 						}
 					}
