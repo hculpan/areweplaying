@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/hculpan/areweplaying/cmd/web/templates"
 	"github.com/hculpan/areweplaying/pkg/data"
@@ -33,7 +34,19 @@ If you wish to check on the status of the game, you may do so at https://awp.cul
 Thank you,
 Your friendly "Are We Playing?" automated system`, session.Date)
 
-	comp := templates.SendReminder(to, subject, text)
+	now := time.Now()
+	sessionDate, err := time.Parse(data.DATE_FORMAT, session.Date)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	msg := ""
+	if now.After(sessionDate) {
+		msg = "Session date is in the past."
+	}
+
+	comp := templates.SendReminder(to, subject, text, msg)
 	comp.Render(context.Background(), w)
 }
 

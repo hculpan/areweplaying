@@ -1,7 +1,7 @@
 package templates
 
 
-templ SendReminder(to string, subject string, text string) {
+templ SendReminder(to string, subject string, text, msg string) {
 <html>
 @Header()
 
@@ -33,8 +33,15 @@ templ SendReminder(to string, subject string, text string) {
                     <label for="textControl" class="form-label">Text to send</label>
                     <textarea class="form-control" id="subjectControl" name="text" rows="5">{ text }</textarea>
                 </div>
-                <button type="submit" class="btn btn-primary">Send Reminder</button>
+                if msg == "" {
+                    <button type="submit" class="btn btn-primary">Send Reminder</button>
+                } else {
+                    <button type="submit" class="btn btn-primary" disabled>Send Reminder</button>
+                }
             </form>
+            if msg != "" {
+            <div class="alert alert-danger">{ msg }</div>
+            }
         </div>
     </div>
 
